@@ -3,12 +3,12 @@ async function loadArticles() {
   try {
     const response = await fetch("news.jsonl");
     const text = await response.text();
-    // 將 JSONL 文字分割成行並解析每一行，並按時間戳倒序排列
+    // 將 JSONL 文字分割成行並解析每一行，直接反轉順序
     return text
       .trim()
       .split("\n")
       .map((line) => JSON.parse(line))
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      .reverse(); // 直接反轉陣列順序，最新的文章會在最前面
   } catch (error) {
     console.error("載入文章失敗:", error);
     return [];
