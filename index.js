@@ -37,7 +37,7 @@ function createArticleHTML(article) {
     ? article.authors.join("、")
     : article.authors;
   return `
-        <div class="article">
+        <div class="article" data-audio-id="${article.id}">
             <div class="title">
                 <a class="title-original" href="${article.url}" target="_blank" style="display:none;">${article.title}</a>
                 <a class="title-translation" href="${article.url}" target="_blank">${article.title_zh}</a>
@@ -70,6 +70,33 @@ async function initializePage() {
   // 顯示文章
   const container = document.getElementById("articles-container");
   container.innerHTML = articles.map(createArticleHTML).join("");
+
+  // 監聽播放器事件
+  function updateCurrentArticle() {
+    const currentAudio = ap.list.audios[ap.list.index];
+    const currentId = currentAudio.url.split("/").pop().replace(".mp3", "");
+
+    // 移除所有文章的 playing 類別
+    document.querySelectorAll(".article").forEach((article) => {
+      article.classList.remove("playing");
+    });
+
+    // 為當前播放的文章添加 playing 類別
+    const currentArticle = document.querySelector(
+      `.article[data-audio-id="${currentId}"]`
+    );
+    if (currentArticle) {
+      currentArticle.classList.add("playing");
+      // 平滑滾動到當前文章
+      setTimeout(() => {
+        currentArticle.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
+  }
+
+  // 監聽播放和切換曲目事件
+  ap.on("play", updateCurrentArticle);
+  ap.on("listswitch", updateCurrentArticle);
 }
 
 // 切換中英文顯示

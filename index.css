@@ -235,3 +235,28 @@ body {
 .aplayer .aplayer-icon-forward {
     display: inline-block !important;
 }
+
+/* 播放器懸浮樣式 */
+#aplayer {
+    position: sticky !important;
+    top: 1em;
+    z-index: 100;
+    margin: 2em auto !important;
+    max-width: 800px;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid #e2e8f0;
+}
+
+/* 當前播放文章的高亮樣式 */
+.article.playing {
+    border: 2px solid #6366f1;
+    background: #fafafa;
+}
+
+.article.playing::before {
+    width: 6px;
+    background: #6366f1;
+}
