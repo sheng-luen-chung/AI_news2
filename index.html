@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>arXiv AI 論文摘要</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aplayer/dist/APlayer.min.css">
+    <link rel="stylesheet" href="./index.css" />
+    <!-- 添加網站圖示和描述 -->
+    <link rel="icon" type="image/png" href="https://arxiv.org/favicon.ico">
+    <meta name="description" content="每日更新的 arXiv AI 論文中文摘要，支援文字和語音閱讀。">
+</head>
+
+<body>
+    <div class="header">
+        <h1>最新 arXiv AI 論文</h1>
+        <div>每日自動更新，點擊標題可閱讀原文</div>
+        <button id="toggle-all-btn" class="toggle-btn" onclick="toggleAll()">顯示原文</button>
+    </div>
+
+    <div id="aplayer" class="aplayer" style="margin:2em auto;max-width:600px;"></div>
+
+    <div class="container" id="articles-container">
+        <!-- 文章會由 JavaScript 動態載入 -->
+    </div>
+
+    <script src="https://unpkg.com/aplayer/dist/APlayer.min.js"></script>
+    <script src="./index.js"></script>
+</body>
+
+</html>
