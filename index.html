@@ -20,7 +20,19 @@
         <button id="toggle-all-btn" class="toggle-btn" onclick="toggleAll()">顯示原文</button>
     </div>
 
-    <div id="aplayer"></div>
+    <div id="player-wrapper">
+        <div id="speed-control">
+            <div class="speed-buttons">
+                <span>播放速度：</span>
+                <button class="speed-btn" data-speed="0.75">0.75x</button>
+                <button class="speed-btn" data-speed="1.0">1.0x</button>
+                <button class="speed-btn active" data-speed="1.25">1.25x</button>
+                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                <button class="speed-btn" data-speed="2.0">2.0x</button>
+            </div>
+        </div>
+        <div id="aplayer"></div>
+    </div>
 
     <div class="container" id="articles-container">
         <!-- 文章會由 JavaScript 動態載入 -->

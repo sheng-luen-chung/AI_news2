@@ -238,16 +238,64 @@ body {
 
 /* 播放器懸浮樣式 */
 #aplayer {
+    position: relative !important;
+    margin: 0 !important;
+    max-width: 100%;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid #e2e8f0;
+    border-top: none;
+}
+
+/* 將播放器和速度控制整合在一起懸浮 */
+#player-wrapper {
     position: sticky !important;
     top: 1em;
     z-index: 100;
     margin: 2em auto !important;
     max-width: 800px;
-    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 播放速度控制 */
+#speed-control {
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 0.8em 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: var(--shadow-lg);
     border: 1px solid #e2e8f0;
+    border-bottom: none;
+}
+
+.speed-buttons {
+    display: flex;
+    gap: 0.5em;
+}
+
+.speed-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 0.4em 1em;
+    font-size: 0.85em;
+    color: #64748b;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.speed-btn:hover {
+    background: #e2e8f0;
+}
+
+.speed-btn.active {
+    background: var(--primary-gradient);
+    color: #fff;
+    border-color: transparent;
 }
 
 /* 當前播放文章的高亮樣式 */
@@ -267,4 +315,20 @@ body {
     /* 設定你想要的最大高度，使用 !important 確保覆蓋 */
     overflow-y: auto;
     /* 超過最大高度時顯示滾動條 */
+}
+
+/* 手機版響應式調整 */
+@media (max-width: 768px) {
+    #player-wrapper {
+        margin: 1em !important;
+    }
+
+    #speed-control {
+        padding: 0.6em 1em;
+    }
+
+    .speed-btn {
+        padding: 0.3em 0.8em;
+        font-size: 0.8em;
+    }
 }

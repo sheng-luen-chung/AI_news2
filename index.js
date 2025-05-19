@@ -71,6 +71,41 @@ async function initializePage() {
   const container = document.getElementById("articles-container");
   container.innerHTML = articles.map(createArticleHTML).join("");
 
+  // 播放速度控制
+  const defaultSpeed = 1.25;
+  let currentSpeed = defaultSpeed;
+
+  // 設定初始播放速度
+  if (ap.audio) {
+    ap.audio.playbackRate = defaultSpeed;
+  }
+
+  // 當播放器載入新的音訊時，設定播放速度
+  ap.on("canplay", () => {
+    if (ap.audio) {
+      ap.audio.playbackRate = currentSpeed;
+    }
+  });
+
+  // 添加點擊事件到播放速度按鈕
+  document.querySelectorAll(".speed-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const speed = parseFloat(btn.getAttribute("data-speed"));
+
+      // 更新播放速度
+      currentSpeed = speed;
+      if (ap.audio) {
+        ap.audio.playbackRate = speed;
+      }
+
+      // 更新按鈕樣式
+      document.querySelectorAll(".speed-btn").forEach((b) => {
+        b.classList.remove("active");
+      });
+      btn.classList.add("active");
+    });
+  });
+
   // 監聽播放器事件
   function updateCurrentArticle() {
     const currentAudio = ap.list.audios[ap.list.index];
