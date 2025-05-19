@@ -260,3 +260,11 @@ body {
     width: 6px;
     background: #6366f1;
 }
+
+/* 控制 APlayer 播放清單的最大高度 */
+.aplayer .aplayer-list {
+    max-height: 330px !important;
+    /* 設定你想要的最大高度，使用 !important 確保覆蓋 */
+    overflow-y: auto;
+    /* 超過最大高度時顯示滾動條 */
+}
