@@ -9,22 +9,7 @@ import google.generativeai as genai
 
 NEWS_PATH = "news.jsonl"
 PROCESSED_IDS_PATH = "processed_ids.txt"
-
-# === 設定搜索關鍵詞 ===
-SEARCH_TOPICS = [
-    {
-        "query": 'ti:"artificial intelligence" OR ti:"AI" OR cat:cs.AI',
-        "name": "AI"
-    },
-    {
-        "query": 'ti:"foundation model" OR ti:"foundational model" OR ti:"large language model" OR ti:"LLM"',
-        "name": "Foundation Model"
-    },
-    {
-        "query": 'ti:"diffusion model" OR ti:"stable diffusion" OR ti:"generative model"',
-        "name": "Diffusion Model"
-    }
-]
+QUERY = ["AI", "Foundation Model", "Diffusion Model"]
 
 # === 設定 Gemini API 金鑰 ===
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -42,11 +27,11 @@ def save_processed_ids(ids, path=PROCESSED_IDS_PATH):
         f.write("\n".join(ids))
 
 # === 抓取 AI 論文摘要 ===
-def fetch_ai_papers(search_topic, max_results=10):
+def fetch_ai_papers(query, max_results=50):
     processed_ids = load_processed_ids()
     client = arxiv.Client()
     search = arxiv.Search(
-        query=search_topic["query"],
+        query=f'"{query}"',
         max_results=max_results,
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
@@ -56,13 +41,13 @@ def fetch_ai_papers(search_topic, max_results=10):
         if result.get_short_id() in processed_ids:
             continue
         papers.append({
+            "query": query,
             "id": result.get_short_id(),
             "url": result.entry_id,
             "title": result.title,
             "summary": result.summary,
             "authors": [author.name for author in result.authors],
             "published_date": result.published.strftime("%Y-%m-%d"),
-            "category": search_topic["name"]  # 添加類別標記
         })
         # 將新處理的 ID 添加到集合中
         processed_ids.add(result.get_short_id())
@@ -74,11 +59,10 @@ def fetch_ai_papers(search_topic, max_results=10):
     return papers
 
 # === 使用 Gemini 摘要為繁體中文 ===
-def summarize_to_chinese(title, summary, category):
+def summarize_to_chinese(title, summary):
     prompt = (
         f"請將以下arXiv論文標題與摘要翻譯成繁體中文，"
         f"並將摘要濃縮成適合收聽且簡明扼要的中文摘要。\n"
-        f"論文類別：{category}\n"
         f"英文標題：{title}\n"
         f"英文摘要：{summary}\n"
         f"請用JSON格式回覆，例如：{{\"title_zh\": \"...\", \"summary_zh\": \"...\"}}"
@@ -99,38 +83,46 @@ def save_audio(text, filename):
 # === 主流程 ===
 def main():
     os.makedirs("audios", exist_ok=True)
-    
-    all_papers = []
-    for topic in SEARCH_TOPICS:
-        print(f"正在抓取 {topic['name']} 相關文章...")
-        papers = fetch_ai_papers(topic, max_results=10)
-        all_papers.extend(papers)
-        print(f"抓取到 {len(papers)} 篇 {topic['name']} 文章")
-    
-    print(f"總共抓取到 {len(all_papers)} 篇文章")
-    
-    if len(all_papers) > 0:
-        for i, paper in enumerate(all_papers):
-            print(f"正在處理第 {i+1} 篇（{paper['category']}）：{paper['title']}")
-            result = summarize_to_chinese(paper['title'], paper['summary'], paper['category'])
-            
-            audio_path = f"audios/{paper['id']}.mp3"
-            save_audio(result['title_zh'] + "\n" + result['summary_zh'], audio_path)
 
-            # 保留原始資料並新增中文和音訊資訊
-            paper_data = paper.copy()  # 複製原始資料
-            paper_data.update({
-                "title_zh": result['title_zh'],
-                "summary_zh": result['summary_zh'],
-                "audio": audio_path,
-                "timestamp": datetime.now().isoformat()
-            })
-            
-            # 直接將新文章附加到檔案末尾
-            with open(NEWS_PATH, "a", encoding="utf-8") as f:
-                f.write(json.dumps(paper_data, ensure_ascii=False) + "\n")
+    # 抓取所有 QUERY 文章
+    papers = []
+    for query in QUERY:
+        print(f"正在抓取 {query} 相關文章...")
+        result = fetch_ai_papers(query)
+        if result:
+            papers.extend(result)
+            print(f"已抓取:{papers[-1]['title']}")
+    print(f"總共抓取到 {len(papers)} 篇文章")
+    
+    # 無文章則無更新
+    if len(papers) == 0:
+        print("沒有抓到任何文章，無更新")
+        return
+    
+    # 處理每篇論文
+    for i, paper in enumerate(papers):
+        # 翻譯
+        print(f"正在處理第 {i+1} 篇 {paper['title']}")
+        result = summarize_to_chinese(paper['title'], paper['summary'])
+        
+        # 生成音訊檔
+        audio_path = f"audios/{paper['id']}.mp3"
+        save_audio(result['title_zh'] + "\n" + result['summary_zh'], audio_path)
 
-        print("✅ 更新完成：news.jsonl 和 MP3 音檔已產生")
+        # 更新json資料
+        paper_data = paper.copy()  # 複製原始資料
+        paper_data.update({
+            "title_zh": result['title_zh'],
+            "summary_zh": result['summary_zh'],
+            "audio": audio_path,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        # 直接將新文章附加到檔案末尾
+        with open(NEWS_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(paper_data, ensure_ascii=False) + "\n")
+
+    print("✅ 更新完成：news.jsonl 和 MP3 音檔已產生")
 
 if __name__ == "__main__":
     main()
