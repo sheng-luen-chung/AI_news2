@@ -36,15 +36,25 @@ function createArticleHTML(article) {
   const authors = Array.isArray(article.authors)
     ? article.authors.join("、")
     : article.authors;
+  const topic = article.query
+    ? `<span class="topic">${article.query}</span>`
+    : "";
   return `
         <div class="article" data-audio-id="${article.id}">
+            ${topic ? `<div class="topic-row">${topic}</div>` : ""}
             <div class="title">
-                <a class="title-original" href="${article.url}" target="_blank" style="display:none;">${article.title}</a>
-                <a class="title-translation" href="${article.url}" target="_blank">${article.title_zh}</a>
+                <a class="title-original" href="${
+                  article.url
+                }" target="_blank" style="display:none;">${article.title}</a>
+                <a class="title-translation" href="${
+                  article.url
+                }" target="_blank">${article.title_zh}</a>
             </div>
             <div class="meta">${authors} ｜ ${article.published_date}</div>
             <div class="abstract">
-                <span class="abstract-original" style="display:none;">${article.summary}</span>
+                <span class="abstract-original" style="display:none;">${
+                  article.summary
+                }</span>
                 <span class="abstract-translation">${article.summary_zh}</span>
             </div>
         </div>

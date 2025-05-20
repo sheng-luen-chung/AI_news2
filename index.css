@@ -134,7 +134,7 @@ body {
     margin-bottom: 1em;
     display: flex;
     align-items: center;
-    gap: 1em;
+    gap: 1.2em;
 }
 
 .meta::before {
@@ -144,6 +144,22 @@ body {
     height: 4px;
     background: #cbd5e1;
     border-radius: 50%;
+}
+
+.topic {
+    display: inline-block;
+    background: linear-gradient(90deg, #34d399 0%, #059669 100%);
+    color: #fff;
+    font-size: 1em;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.25em 1.2em;
+    margin-right: 1.2em;
+    letter-spacing: 0.08em;
+    box-shadow: 0 2px 8px rgba(52, 211, 153, 0.10);
+    vertical-align: middle;
+    border: none;
+    transition: background 0.3s;
 }
 
 .abstract {
@@ -331,4 +347,8 @@ body {
         padding: 0.3em 0.8em;
         font-size: 0.8em;
     }
+}
+
+.topic-row {
+    margin-bottom: 0.5em;
 }
