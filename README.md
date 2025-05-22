@@ -2,7 +2,7 @@
 
 這是一個自動抓取、翻譯和朗讀 arXiv AI 論文摘要的網站專案。
 
-網站連結：[https://noname414.github.io/listen-ai-news/](https://noname414.github.io/listen-ai-news/)
+網站連結：[https://noname414.github.io/listen-ai-news/](https://noname414.github.io/AI_news2/)
 
 ## 功能特色
 
