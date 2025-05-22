@@ -169,13 +169,15 @@ body {
     margin-bottom: 1.5em;
 }
 
-.applications, .pitch {
+.applications,
+.pitch {
     margin-top: 1.5em;
     padding-top: 1.5em;
     border-top: 1px solid #e2e8f0;
 }
 
-.applications h3, .pitch h3 {
+.applications h3,
+.pitch h3 {
     color: #4f46e5;
     font-size: 1.2em;
     font-weight: 600;
