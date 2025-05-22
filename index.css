@@ -166,6 +166,49 @@ body {
     color: #334155;
     line-height: 1.8;
     font-size: 1.05em;
+    margin-bottom: 1.5em;
+}
+
+.applications, .pitch {
+    margin-top: 1.5em;
+    padding-top: 1.5em;
+    border-top: 1px solid #e2e8f0;
+}
+
+.applications h3, .pitch h3 {
+    color: #4f46e5;
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 1em;
+}
+
+.applications ul {
+    padding-left: 1.2em;
+    margin: 0.5em 0;
+}
+
+.applications li {
+    margin-bottom: 0.8em;
+    position: relative;
+    list-style-type: none;
+    padding-left: 1em;
+}
+
+.applications li:before {
+    content: "•";
+    color: #34d399;
+    font-weight: bold;
+    font-size: 1.2em;
+    position: absolute;
+    left: -0.5em;
+}
+
+.pitch p {
+    background: #f8fafc;
+    border-left: 3px solid #4f46e5;
+    padding: 1em;
+    font-style: italic;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 #player-container {

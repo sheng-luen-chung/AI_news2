@@ -58,14 +58,17 @@ def fetch_ai_papers(query, max_results=50):
     save_processed_ids(processed_ids)
     return papers
 
-# === 使用 Gemini 摘要為繁體中文 ===
+# === 使用 Gemini 摘要為繁體中文、生成應用場景與創投推銷點 ===
 def summarize_to_chinese(title, summary):
     prompt = (
-        f"請將以下arXiv論文標題與摘要翻譯成繁體中文，"
-        f"並將摘要濃縮成適合收聽且簡明扼要的中文摘要。\n"
+        f"請將以下arXiv論文標題與摘要翻譯成繁體中文，並完成以下三個任務：\n"
+        f"1. 將摘要濃縮成適合收聽且簡明扼要的中文摘要。\n"
+        f"2. 設想3個「生活化的應用場景」，用簡單易懂的口語描述，讓一般人能理解這項技術的價值。\n"
+        f"3. 以「向創投或天使基金推銷」的角度，說明這項技術的重要性與潛在商業價值，盡量發揮創意、大膽預測未來可能性。\n\n"
         f"英文標題：{title}\n"
         f"英文摘要：{summary}\n"
-        f"請用JSON格式回覆，例如：{{\"title_zh\": \"...\", \"summary_zh\": \"...\"}}"
+        f"請用JSON格式回覆，包含以下欄位：\n"
+        f"{{\"title_zh\": \"中文標題\", \"summary_zh\": \"中文摘要\", \"applications\": [\"應用場景1\", \"應用場景2\", \"應用場景3\"], \"pitch\": \"向創投推銷的內容\"}}"
     )
     response = model.generate_content(prompt)
     text = response.text.strip()
@@ -98,22 +101,34 @@ def main():
     if len(papers) == 0:
         print("沒有抓到任何文章，無更新")
         return
-    
-    # 處理每篇論文
+      # 處理每篇論文
     for i, paper in enumerate(papers):
         # 翻譯
         print(f"正在處理第 {i+1} 篇 {paper['title']}")
         result = summarize_to_chinese(paper['title'], paper['summary'])
         
+        # 組合音訊內容：標題、摘要、應用場景與創投推銷點
+        audio_content = (
+            f"{result['title_zh']}\n\n"
+            f"{result['summary_zh']}\n\n"
+            f"這項技術有三個生活化的應用場景：\n"
+            f"第一，{result['applications'][0]}\n"
+            f"第二，{result['applications'][1]}\n" 
+            f"第三，{result['applications'][2]}\n\n"
+            f"如果向創投或天使基金推銷，可以這樣說：\n{result['pitch']}"
+        )
+        
         # 生成音訊檔
         audio_path = f"audios/{paper['id']}.mp3"
-        save_audio(result['title_zh'] + "\n" + result['summary_zh'], audio_path)
+        save_audio(audio_content, audio_path)
 
         # 更新json資料
         paper_data = paper.copy()  # 複製原始資料
         paper_data.update({
             "title_zh": result['title_zh'],
             "summary_zh": result['summary_zh'],
+            "applications": result['applications'],
+            "pitch": result['pitch'],
             "audio": audio_path,
             "timestamp": datetime.now().isoformat()
         })

@@ -39,6 +39,31 @@ function createArticleHTML(article) {
   const topic = article.query
     ? `<span class="topic">${article.query}</span>`
     : "";
+    
+  // 處理生活化應用場景
+  let applicationsHTML = '';
+  if (article.applications && Array.isArray(article.applications)) {
+    applicationsHTML = `
+      <div class="applications">
+        <h3>生活化應用場景</h3>
+        <ul>
+          ${article.applications.map(app => `<li>${app}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  // 處理創投推銷內容
+  let pitchHTML = '';
+  if (article.pitch) {
+    pitchHTML = `
+      <div class="pitch">
+        <h3>創投推銷角度</h3>
+        <p>${article.pitch}</p>
+      </div>
+    `;
+  }
+  
   return `
         <div class="article" data-audio-id="${article.id}">
             ${topic ? `<div class="topic-row">${topic}</div>` : ""}
@@ -57,6 +82,8 @@ function createArticleHTML(article) {
                 }</span>
                 <span class="abstract-translation">${article.summary_zh}</span>
             </div>
+            ${applicationsHTML}
+            ${pitchHTML}
         </div>
     `;
 }
