@@ -5,15 +5,29 @@ import json
 import os
 from gtts import gTTS
 from datetime import datetime
-import google.generativeai as genai
+from pydantic import BaseModel, Field
+from typing import List
+from google import genai
+from google.genai import types
 
 NEWS_PATH = "news.jsonl"
 PROCESSED_IDS_PATH = "processed_ids.txt"
 QUERY = ["AI", "Foundation Model", "Diffusion Model"]
 
 # === 設定 Gemini API 金鑰 ===
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.0-flash")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# === 定義結構化輸出的 Pydantic 模型 ===
+class PaperTranslation(BaseModel):
+    """論文翻譯結果的結構化模型"""
+    title_zh: str = Field(description="論文的繁體中文標題")
+    summary_zh: str = Field(description="適合收聽的簡明中文摘要")
+    applications: List[str] = Field(
+        description="三個生活化應用場景的描述",
+        min_items=3,
+        max_items=3
+    )
+    pitch: str = Field(description="向創投或天使基金推銷的內容")
 
 # === 輔助函式：讀取與儲存已處理的 ID ===
 def load_processed_ids(path=PROCESSED_IDS_PATH):
@@ -29,14 +43,14 @@ def save_processed_ids(ids, path=PROCESSED_IDS_PATH):
 # === 抓取 AI 論文摘要 ===
 def fetch_ai_papers(query, max_results=50):
     processed_ids = load_processed_ids()
-    client = arxiv.Client()
+    client_arxiv = arxiv.Client()
     search = arxiv.Search(
         query=f'"{query}"',
         max_results=max_results,
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
     papers = []
-    for result in client.results(search):
+    for result in client_arxiv.results(search):
         # 跳過已處理的論文
         if result.get_short_id() in processed_ids:
             continue
@@ -58,30 +72,58 @@ def fetch_ai_papers(query, max_results=50):
     save_processed_ids(processed_ids)
     return papers
 
-# === 使用 Gemini 摘要為繁體中文、生成應用場景與創投推銷點 ===
+# === 使用 Gemini 結構化輸出進行翻譯 ===
 def summarize_to_chinese(title, summary):
+    """使用新的 Google GenAI SDK 和結構化輸出進行論文翻譯"""
     prompt = (
-        f"請將以下arXiv論文標題與摘要翻譯成繁體中文，並完成以下三個任務：\n"
-        f"1. 將摘要濃縮成適合收聽且簡明扼要的中文摘要。\n"
+        f"請將以下arXiv論文標題與摘要翻譯成繁體中文，並完成以下任務：\n"
+        f"1. 將摘要濃縮成適合收聽且簡明扼要的中文摘要（約100-150字）。\n"
         f"2. 設想3個「生活化的應用場景」，用簡單易懂的口語描述，讓一般人能理解這項技術的價值。\n"
         f"3. 以「向創投或天使基金推銷」的角度，說明這項技術的重要性與潛在商業價值，盡量發揮創意、大膽預測未來可能性。\n\n"
         f"英文標題：{title}\n"
         f"英文摘要：{summary}\n"
-        f"請用JSON格式回覆，包含以下欄位：\n"
-        f"{{\"title_zh\": \"中文標題\", \"summary_zh\": \"中文摘要\", \"applications\": [\"應用場景1\", \"應用場景2\", \"應用場景3\"], \"pitch\": \"向創投推銷的內容\"}}"
     )
-    response = model.generate_content(prompt)
-    text = response.text.strip()
-    # 移除可能的 markdown 程式碼區塊標記
-    text = re.sub(r"^```json|^```|```$", "", text, flags=re.MULTILINE).strip()
-    # 解析 JSON 回應
-    result = json.loads(text)
-    return result
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-001',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type='application/json',
+                response_schema=PaperTranslation,
+                temperature=0.7,
+                max_output_tokens=2000,
+            ),
+        )
+        
+        # 使用結構化輸出，直接解析為 Pydantic 模型
+        result = response.parsed
+        
+        # 轉換為字典格式以保持與原有代碼的兼容性
+        return {
+            "title_zh": result.title_zh,
+            "summary_zh": result.summary_zh,
+            "applications": result.applications,
+            "pitch": result.pitch
+        }
+        
+    except Exception as e:
+        print(f"翻譯過程中發生錯誤: {e}")
+        # 回退到基本翻譯
+        return {
+            "title_zh": f"[翻譯失敗] {title}",
+            "summary_zh": f"摘要翻譯失敗：{str(e)}",
+            "applications": ["應用場景1：翻譯失敗", "應用場景2：翻譯失敗", "應用場景3：翻譯失敗"],
+            "pitch": "推銷內容翻譯失敗"
+        }
 
 # === 將摘要轉成語音檔 ===
 def save_audio(text, filename):
-    tts = gTTS(text, lang='zh-tw')
-    tts.save(filename)
+    try:
+        tts = gTTS(text, lang='zh-tw')
+        tts.save(filename)
+    except Exception as e:
+        print(f"語音生成失敗: {e}")
 
 # === 主流程 ===
 def main():
@@ -101,7 +143,8 @@ def main():
     if len(papers) == 0:
         print("沒有抓到任何文章，無更新")
         return
-      # 處理每篇論文
+        
+    # 處理每篇論文
     for i, paper in enumerate(papers):
         # 翻譯
         print(f"正在處理第 {i+1} 篇 {paper['title']}")

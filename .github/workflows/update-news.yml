@@ -2,7 +2,7 @@ name: Update News and Deploy
 
 on:
   schedule:
-    - cron: "0 * * * *" # 每小時執行
+    - cron: "0 */3 * * *" # 每3小時執行
   workflow_dispatch: # 允許手動觸發
 
 jobs:
