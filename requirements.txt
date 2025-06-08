@@ -1,4 +1,5 @@
 arxiv
 gtts
 google-genai
-pydantic 
+pydantic
+requests

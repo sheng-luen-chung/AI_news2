@@ -3,6 +3,8 @@ import re
 import arxiv
 import json
 import os
+import time
+import requests
 from gtts import gTTS
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -50,25 +52,53 @@ def fetch_ai_papers(query, max_results=50):
         sort_by=arxiv.SortCriterion.SubmittedDate
     )
     papers = []
-    for result in client_arxiv.results(search):
-        # 跳過已處理的論文
-        if result.get_short_id() in processed_ids:
-            continue
-        papers.append({
-            "query": query,
-            "id": result.get_short_id(),
-            "url": result.entry_id,
-            "title": result.title,
-            "summary": result.summary,
-            "authors": [author.name for author in result.authors],
-            "published_date": result.published.strftime("%Y-%m-%d"),
-        })
-        # 將新處理的 ID 添加到集合中
-        processed_ids.add(result.get_short_id())
-        # 每個類別只抓取1篇
-        break
 
-    # 在處理完所有論文後，一次性儲存更新後的 ID 集合
+    attempts = 0
+    max_attempts = 3
+    delay_seconds = 5
+
+    while attempts < max_attempts:
+        try:
+            results_generator = client_arxiv.results(search)
+            for result in results_generator:
+                # 跳過已處理的論文
+                if result.get_short_id() in processed_ids:
+                    continue
+                papers.append({
+                    "query": query,
+                    "id": result.get_short_id(),
+                    "url": result.entry_id,
+                    "title": result.title,
+                    "summary": result.summary,
+                    "authors": [author.name for author in result.authors],
+                    "published_date": result.published.strftime("%Y-%m-%d"),
+                })
+                # 將新處理的 ID 添加到集合中
+                processed_ids.add(result.get_short_id())
+                # 每個類別只抓取1篇
+                break  # Exit after processing one new paper for the query
+
+            # 如果成功抓取到論文（不論新舊），就跳出重試迴圈
+            # 或者，如果遍歷完 results_generator 且沒有找到新論文，也算成功（避免無限重試）
+            # 但如果 results_generator 本身就是空的，且 papers 也是空的，那可能是個問題，不過目前邏輯是如果沒有新論文就返回空 papers
+            save_processed_ids(processed_ids) # Save IDs whether new paper was found or not, to persist skipped ones
+            return papers # Return papers if successful, even if empty (no new papers found for this query)
+
+        except (arxiv.exceptions.RequestThrottled,
+                arxiv.exceptions.UnexpectedEmptyPage,
+                arxiv.exceptions.HTTPError,
+                requests.exceptions.ConnectionError) as e:
+            attempts += 1
+            error_type = "錯誤"
+            logging.error(f"抓取 '{query}' 時發生{error_type}: {e}。嘗試次數 {attempts}/{max_attempts}...")
+            if attempts < max_attempts:
+                time.sleep(delay_seconds)
+            else:
+                logging.error(f"抓取 '{query}' 失敗，已達最大嘗試次數。")
+                save_processed_ids(processed_ids) # Save any processed IDs before returning empty
+                return [] # Return empty list for this query
+
+    # Fallback if loop finishes without returning (should not happen with current logic)
     save_processed_ids(processed_ids)
     return papers
 
