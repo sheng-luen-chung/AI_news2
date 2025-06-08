@@ -87,13 +87,9 @@ def fetch_ai_papers(query, max_results=50):
         except (arxiv.exceptions.RequestThrottled,
                 arxiv.exceptions.UnexpectedEmptyPage,
                 arxiv.exceptions.HTTPError,
-                requests.exceptions.ConnectionError,
-                Exception) as e:
+                requests.exceptions.ConnectionError) as e:
             attempts += 1
-            error_type = "未預期錯誤" if isinstance(e, Exception) and not isinstance(e, (arxiv.exceptions.RequestThrottled,
-                                                                                          arxiv.exceptions.UnexpectedEmptyPage,
-                                                                                          arxiv.exceptions.HTTPError,
-                                                                                          requests.exceptions.ConnectionError)) else "錯誤"
+            error_type = "錯誤"
             logging.error(f"抓取 '{query}' 時發生{error_type}: {e}。嘗試次數 {attempts}/{max_attempts}...")
             if attempts < max_attempts:
                 time.sleep(delay_seconds)
