@@ -87,18 +87,14 @@ def fetch_ai_papers(query, max_results=50):
         except (arxiv.exceptions.RequestThrottled,
                 arxiv.exceptions.UnexpectedEmptyPage,
                 arxiv.exceptions.HTTPError,
-                requests.exceptions.ConnectionError) as e:
+                requests.exceptions.ConnectionError,
+                Exception) as e:
             attempts += 1
-            print(f"抓取 '{query}' 時發生錯誤: {e}。嘗試次數 {attempts}/{max_attempts}...")
-            if attempts < max_attempts:
-                time.sleep(delay_seconds)
-            else:
-                print(f"抓取 '{query}' 失敗，已達最大嘗試次數。")
-                save_processed_ids(processed_ids) # Save any processed IDs before returning empty
-                return [] # Return empty list for this query
-        except Exception as e:
-            attempts += 1
-            print(f"抓取 '{query}' 時發生未預期錯誤: {e}。嘗試次數 {attempts}/{max_attempts}...")
+            error_type = "未預期錯誤" if isinstance(e, Exception) and not isinstance(e, (arxiv.exceptions.RequestThrottled,
+                                                                                          arxiv.exceptions.UnexpectedEmptyPage,
+                                                                                          arxiv.exceptions.HTTPError,
+                                                                                          requests.exceptions.ConnectionError)) else "錯誤"
+            print(f"抓取 '{query}' 時發生{error_type}: {e}。嘗試次數 {attempts}/{max_attempts}...")
             if attempts < max_attempts:
                 time.sleep(delay_seconds)
             else:
