@@ -18,3 +18,9 @@ Thumbs.db
 
 # test
 TEST.py
+.other/
+
+# uv
+.python-version
+pyproject.toml
+uv.lock
