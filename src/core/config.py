@@ -35,6 +35,11 @@ class Config:
     
     # 語音合成配置
     TTS_LANGUAGE: str = "zh-tw"
+    GEMINI_TTS_MODEL: str = "gemini-2.5-flash-preview-tts"
+    GEMINI_TTS_VOICE: str = "Kore"  # 可選的語音名稱
+    TTS_SAMPLE_RATE: int = 24000
+    TTS_CHANNELS: int = 1
+    TTS_SAMPLE_WIDTH: int = 2
     
     # 網站配置
     SITE_TITLE: str = "最新 arXiv AI 論文"
@@ -54,4 +59,4 @@ class Config:
     @classmethod
     def get_audio_path(cls, paper_id: str) -> Path:
         """取得音訊檔案路徑"""
-        return cls.AUDIO_DIR / f"{paper_id}.mp3" 
+        return cls.AUDIO_DIR / f"{paper_id}.wav" 

@@ -75,7 +75,10 @@ def main():
                 stats.audio_generated += 1
                 
                 # 更新論文物件
-                paper.add_translation(translation, str(audio_path.relative_to(config.BASE_DIR)))
+                # 確保路徑使用正斜線，避免 JavaScript 處理問題
+                relative_path = audio_path.relative_to(config.BASE_DIR)
+                web_friendly_path = str(relative_path).replace("\\", "/")
+                paper.add_translation(translation, web_friendly_path)
                 
                 # 儲存論文資料
                 storage_service.save_paper(paper)

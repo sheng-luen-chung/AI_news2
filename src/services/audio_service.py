@@ -1,10 +1,13 @@
 """
 音訊生成服務
 
-使用 Google Text-to-Speech 生成中文語音檔案。
+使用 Gemini Text-to-Speech 生成中文語音檔案。
 """
 
-from gtts import gTTS
+from google import genai
+from google.genai import types
+import wave
+import os
 from pathlib import Path
 
 from ..core.config import Config
@@ -19,6 +22,35 @@ class AudioService:
     
     def __init__(self, config: Config = None):
         self.config = config or Config()
+        
+        # 初始化 Gemini 客戶端
+        if not self.config.GEMINI_API_KEY:
+            raise AudioGenerationError("GEMINI_API_KEY 環境變數未設定")
+        
+        self.client = genai.Client(api_key=self.config.GEMINI_API_KEY)
+    
+    def _save_wave_file(self, filename: str, pcm_data: bytes, channels: int = None, 
+                       rate: int = None, sample_width: int = None) -> None:
+        """
+        儲存 PCM 資料為 WAV 檔案
+        
+        Args:
+            filename: 輸出檔案名稱
+            pcm_data: PCM 音訊資料
+            channels: 聲道數
+            rate: 取樣率
+            sample_width: 取樣寬度（位元組）
+        """
+        # 使用配置中的預設值
+        channels = channels or self.config.TTS_CHANNELS
+        rate = rate or self.config.TTS_SAMPLE_RATE
+        sample_width = sample_width or self.config.TTS_SAMPLE_WIDTH
+        
+        with wave.open(filename, "wb") as wf:
+            wf.setnchannels(channels)
+            wf.setsampwidth(sample_width)
+            wf.setframerate(rate)
+            wf.writeframes(pcm_data)
     
     def generate_audio(self, text: str, output_path: Path) -> None:
         """
@@ -32,16 +64,41 @@ class AudioService:
             AudioGenerationError: 音訊生成失敗時拋出
         """
         try:
-            logger.info(f"正在生成音訊檔案: {output_path.name}")
+            logger.info(f"正在使用 Gemini TTS 生成音訊檔案: {output_path.name}")
             
             # 確保輸出目錄存在
             output_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # 生成語音
-            tts = gTTS(text, lang=self.config.TTS_LANGUAGE)
-            tts.save(str(output_path))
+            # 使用 Gemini TTS 生成語音
+            response = self.client.models.generate_content(
+                model=self.config.GEMINI_TTS_MODEL,
+                contents=text,
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                voice_name=self.config.GEMINI_TTS_VOICE,
+                            )
+                        )
+                    ),
+                )
+            )
             
-            logger.info(f"音訊檔案生成成功: {output_path}")
+            # 提取音訊資料
+            if (response.candidates and 
+                response.candidates[0].content and 
+                response.candidates[0].content.parts and
+                response.candidates[0].content.parts[0].inline_data):
+                
+                pcm_data = response.candidates[0].content.parts[0].inline_data.data
+                
+                # 儲存為 WAV 檔案
+                self._save_wave_file(str(output_path), pcm_data)
+                
+                logger.info(f"音訊檔案生成成功: {output_path}")
+            else:
+                raise AudioGenerationError("無法從 Gemini API 回應中提取音訊資料")
             
         except Exception as e:
             error_msg = f"生成音訊檔案失敗: {str(e)}"

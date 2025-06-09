@@ -1,4 +1,3 @@
 arxiv
-gtts
 google-genai
 pydantic 

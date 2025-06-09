@@ -21,10 +21,14 @@ function createAudioList(articles) {
     const authors = Array.isArray(article.authors)
       ? article.authors.join("、")
       : article.authors;
+    // 確保音檔路徑相對於 HTML 檔案
+    const audioUrl = article.audio.startsWith("data/")
+      ? `../${article.audio}`
+      : article.audio;
     return {
       name: article.title_zh,
       artist: authors,
-      url: article.audio,
+      url: audioUrl,
       cover:
         "https://raw.githubusercontent.com/DIYgod/APlayer/master/assets/default.jpg",
     };
@@ -146,7 +150,8 @@ async function initializePage() {
   // 監聽播放器事件
   function updateCurrentArticle() {
     const currentAudio = ap.list.audios[ap.list.index];
-    const currentId = currentAudio.url.split("/").pop().replace(".mp3", "");
+    // 從 URL 中提取檔案名稱，移除路徑和副檔名
+    const currentId = currentAudio.url.split("/").pop().replace(".wav", "");
 
     // 移除所有文章的 playing 類別
     document.querySelectorAll(".article").forEach((article) => {
