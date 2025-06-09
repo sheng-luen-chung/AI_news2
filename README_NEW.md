@@ -58,17 +58,18 @@ AI_news2/
 2. **建立虛擬環境**
 
    ```bash
-   make venv
+   python venv .venv
    .venv\Scripts\activate  # Windows
    ```
 
 3. **安裝依賴**
 
    ```bash
-   make install
+   pip install -r requirements.txt
    ```
 
 4. **設置環境變數**
+
    ```bash
    # 設置 GEMINI_API_KEY
    set GEMINI_API_KEY=your_api_key_here
@@ -79,35 +80,9 @@ AI_news2/
 1. **更新新聞資料**
 
    ```bash
-   make update-news
+   cd src\cli\;
+   python main.py
    ```
-
-2. **啟動本地伺服器**
-
-   ```bash
-   make serve
-   ```
-
-3. **檢查配置**
-   ```bash
-   make check-config
-   ```
-
-## 📋 可用指令
-
-使用 `make help` 查看所有可用指令：
-
-```bash
-make help              # 顯示幫助資訊
-make install           # 安裝專案依賴
-make update-news       # 更新新聞資料
-make serve             # 啟動本地開發伺服器
-make test              # 執行測試
-make clean             # 清理暫存檔案
-make backup            # 備份資料檔案
-make lint              # 程式碼檢查
-make format            # 格式化程式碼
-```
 
 ## 🔧 服務架構
 
@@ -183,14 +158,6 @@ logger.info("處理開始")
 logger.error("處理失敗", exc_info=True)
 ```
 
-## 🧪 測試
-
-執行測試：
-
-```bash
-make test
-```
-
 ## 📈 監控和統計
 
 新版本提供詳細的處理統計：
@@ -211,12 +178,6 @@ make test
 - 自動部署到 GitHub Pages
 - 持續整合和測試
 
-### 手動部署
-
-```bash
-make deploy
-```
-
 ## 🔧 開發指南
 
 ### 新增功能
@@ -225,13 +186,6 @@ make deploy
 2. 更新資料模型（如需要）
 3. 新增測試
 4. 更新文檔
-
-### 程式碼風格
-
-```bash
-make lint    # 檢查程式碼
-make format  # 格式化程式碼
-```
 
 ## 📝 更新日誌
 
