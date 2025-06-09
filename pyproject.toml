@@ -9,4 +9,5 @@ dependencies = [
     "google-genai>=1.19.0",
     "gtts>=2.5.4",
     "pydantic>=2.11.5",
+    "pytest>=8.4.0",
 ]

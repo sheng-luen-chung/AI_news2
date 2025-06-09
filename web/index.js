@@ -1,7 +1,7 @@
 // 讀取 JSONL 檔案
 async function loadArticles() {
   try {
-    const response = await fetch("news.jsonl");
+    const response = await fetch("../data/news.jsonl");
     const text = await response.text();
     // 將 JSONL 文字分割成行並解析每一行，直接反轉順序
     return text
