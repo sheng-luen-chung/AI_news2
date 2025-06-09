@@ -17,7 +17,7 @@ class Config:
     
     # 檔案路徑配置
     BASE_DIR = Path(__file__).parent.parent.parent
-    DATA_DIR = BASE_DIR / "data"
+    DATA_DIR = BASE_DIR / "docs" / "data"
     AUDIO_DIR = DATA_DIR / "audios"
     WEB_DIR = BASE_DIR / "web"
     
