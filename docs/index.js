@@ -21,10 +21,8 @@ function createAudioList(articles) {
     const authors = Array.isArray(article.authors)
       ? article.authors.join("、")
       : article.authors;
-    // 確保音檔路徑相對於 HTML 檔案
-    const audioUrl = article.audio.startsWith("data/")
-      ? article.audio
-      : article.audio;
+    // 直接根據文章ID組合音檔相對路徑
+    const audioUrl = `data/audios/${article.id}.wav`;
     return {
       name: article.title_zh,
       artist: authors,
