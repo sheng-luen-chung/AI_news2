@@ -2,7 +2,7 @@ name: Update News and Deploy
 
 on:
   schedule:
-    - cron: "0 * * * *" # 每小時執行
+    - cron: "0 */3 * * *" # 每3小時執行
   workflow_dispatch: # 允許手動觸發
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          python news_update.py
+          python src/cli/main.py
 
       - name: Commit and push if changed
         run: |
@@ -46,4 +46,4 @@ jobs:
           publish_dir: .
           publish_branch: gh-pages
           force_orphan: true
-          exclude_assets: ".github,requirements.txt,news_update.py,processed_ids.txt,.gitignore"
+          exclude_assets: ".github,requirements.txt,src,data/processed_ids.txt,.gitignore,pyproject.toml,uv.lock,.python-version,.venv,Makefile"
